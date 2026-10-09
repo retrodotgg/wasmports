@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <title>GTA 3 Online</title>
-
+  <base href="https://cdn.jsdelivr.net/gh/retrodotgg/wasmports@main/gta3/">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" href="background.webp" as="image">
@@ -216,7 +216,13 @@
 
   <script src="build/re3_wasm.js"></script>
   <script src="asset-source.js?v=5"></script>
-  <script src="opfs-cache.js?v=20260926-opfs7"></script>
+  <script>document.querySelector("base")?.remove();</script>
+  <script src="https://cdn.jsdelivr.net/gh/retrodotgg/wasmports@main/gta3/opfs-cache.js?v=20261009-worker-origin"></script>
+  <script>
+    const cdnBase = document.createElement("base");
+    cdnBase.href = "https://cdn.jsdelivr.net/gh/retrodotgg/wasmports@main/gta3/";
+    document.head.insertBefore(cdnBase, document.head.firstChild);
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.js" crossorigin="anonymous"></script>
   <script src="vfs.js?v=20260926-ziproot2"></script>
   <script src="saves.js?v=20260922-3"></script>
