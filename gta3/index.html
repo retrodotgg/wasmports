@@ -223,6 +223,22 @@
     cdnBase.href = "https://cdn.jsdelivr.net/gh/retrodotgg/wasmports@main/gta3/";
     document.head.insertBefore(cdnBase, document.head.firstChild);
   </script>
+  <script>
+    (() => {
+      const NativeWorker = window.Worker;
+      if (!NativeWorker) return;
+      window.Worker = class extends NativeWorker {
+        constructor(scriptURL, options) {
+          const workerUrl = new URL(scriptURL, window.location.href);
+          if (workerUrl.pathname.endsWith("/opfs-cache-worker.js")) {
+            super(new URL("/opfs-cache-worker.js", window.location.href), options);
+            return;
+          }
+          super(scriptURL, options);
+        }
+      };
+    })();
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.js" crossorigin="anonymous"></script>
   <script src="vfs.js?v=20260926-ziproot2"></script>
   <script src="saves.js?v=20260922-3"></script>
