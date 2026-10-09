@@ -4,7 +4,8 @@
   const CACHE_DIR = "_gta3_asset_cache_v1";
   const ARCHIVE_FILE = "game.zip";
   const META_FILE = "meta.json";
-  const WORKER_URL = "opfs-cache-worker.js?v=20260926-opfs4";
+  const workerPath = document.querySelector("base") ? "gta3/opfs-cache-worker.js" : "opfs-cache-worker.js";
+  const WORKER_URL = new URL(`${workerPath}?v=20261009-same-origin`, window.location.href);
   const LOCK_NAME = "gta3-opfs-cache-v1";
   let localMutation = Promise.resolve();
 
