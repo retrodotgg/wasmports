@@ -1,0 +1,13 @@
+{
+"companyName": "Innersloth",
+"productName": "Among Us",
+"dataUrl": "AmongUSWebPortByTSProllyFinalBuild9.data.unityweb",
+"wasmCodeUrl": "AmongUSWebPortByTSProllyFinalBuild9.wasm.code.unityweb",
+"wasmFrameworkUrl": "AmongUSWebPortByTSProllyFinalBuild9.wasm.framework.unityweb",
+"TOTAL_MEMORY": 536870912,
+"graphicsAPI": ["WebGL 2.0", "WebGL 1.0"],
+"webglContextAttributes": {"preserveDrawingBuffer": false},
+"splashScreenStyle": "Dark",
+"backgroundColor": "#000000",
+"cacheControl": {"default": "must-revalidate"}
+}
