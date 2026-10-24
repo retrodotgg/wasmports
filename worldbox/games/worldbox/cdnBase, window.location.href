@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="title" content="404 - Truffled" />
+    <meta name="description" content="Page not found." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="/" />
+    <meta property="og:title" content="404 - Truffled" />
+    <meta property="og:description" content="Page not found." />
+    <meta property="og:image" content="/png/logo.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="/" />
+    <meta name="twitter:title" content="404 - Truffled" />
+    <meta name="twitter:description" content="Page not found." />
+    <meta name="twitter:image" content="/png/logo.png" />
+    <link rel="icon" type="image/png" href="/png/logo.png" />
+    <title>404 - Truffled</title>
+    <style>html{background:#121e1e}</style>
+    <link rel="stylesheet" href="/css/404.css" />
+  </head>
+  <body>
+    <main class="content">
+      <h1>Page Not Found</h1>
+      <p>
+        You may be seeing this if you went on a broken game or searched the proxy the first time.
+        Search again, but join Discord and report a bug if you find a broken game!
+      </p>
+      <div class="button-container">
+        <button type="button" onclick="if(history.length>1){history.back()}else{location.href='/'}">Go Back</button>
+      </div>
+    </main>
+  </body>
+</html>

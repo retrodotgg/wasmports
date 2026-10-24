@@ -1,0 +1,44 @@
+{
+  "Build/WorldFox.data": {
+    "size": 70622522,
+    "parts": [
+      "Build/WorldFox.data.part000",
+      "Build/WorldFox.data.part001",
+      "Build/WorldFox.data.part002",
+      "Build/WorldFox.data.part003"
+    ]
+  },
+  "Build/WorldFox.wasm": {
+    "size": 67595725,
+    "parts": [
+      "Build/WorldFox.wasm.part000",
+      "Build/WorldFox.wasm.part001",
+      "Build/WorldFox.wasm.part002",
+      "Build/WorldFox.wasm.part003"
+    ]
+  },
+  "StreamingAssets/Master.bank": {
+    "size": 355398656,
+    "parts": [
+      "StreamingAssets/Master.bank.part000",
+      "StreamingAssets/Master.bank.part001",
+      "StreamingAssets/Master.bank.part002",
+      "StreamingAssets/Master.bank.part003",
+      "StreamingAssets/Master.bank.part004",
+      "StreamingAssets/Master.bank.part005",
+      "StreamingAssets/Master.bank.part006",
+      "StreamingAssets/Master.bank.part007",
+      "StreamingAssets/Master.bank.part008",
+      "StreamingAssets/Master.bank.part009",
+      "StreamingAssets/Master.bank.part010",
+      "StreamingAssets/Master.bank.part011",
+      "StreamingAssets/Master.bank.part012",
+      "StreamingAssets/Master.bank.part013",
+      "StreamingAssets/Master.bank.part014",
+      "StreamingAssets/Master.bank.part015",
+      "StreamingAssets/Master.bank.part016",
+      "StreamingAssets/Master.bank.part017",
+      "StreamingAssets/Master.bank.part018"
+    ]
+  }
+}
