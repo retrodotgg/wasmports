@@ -49,6 +49,25 @@
         background: #142034;
         overflow: hidden;
       }
+      .back-button {
+        position: absolute;
+        z-index: 2;
+        top: 12px;
+        right: 12px;
+        display: grid;
+        width: 44px;
+        height: 44px;
+        place-items: center;
+        border: 1px solid #ffffff80;
+        border-radius: 50%;
+        background: #191726cc;
+        color: #fff;
+        font: 32px/1 Arial, sans-serif;
+        cursor: pointer;
+      }
+      .back-button:hover {
+        background: #191726;
+      }
       canvas {
         display: block;
         position: absolute;
@@ -187,6 +206,13 @@
     <div class="shell">
       <main>
         <div class="stage" id="stage">
+          <button
+            class="back-button"
+            id="back-button"
+            type="button"
+            aria-label="Volver a Nimo Games"
+            title="Volver a Nimo Games"
+          >&times;</button>
           <canvas
             id="canvas"
             width="1280"
@@ -219,6 +245,7 @@
     <script type="module">
       import createRunner from "./butterscotch.js";
       const canvas = document.querySelector("#canvas"),
+        backButton = document.querySelector("#back-button"),
         log = document.querySelector("#log"),
         status = document.querySelector("#status"),
         stage = document.querySelector("#stage"),
@@ -227,6 +254,12 @@
         percentage = document.querySelector("#percentage"),
         progress = document.querySelector("#progress"),
         fill = document.querySelector("#fill");
+      backButton.addEventListener("click", () => {
+        window.close();
+        window.setTimeout(() => {
+          if (!window.closed) window.location.replace("https://nimogames.qzz.io/");
+        }, 100);
+      });
       const print = (...args) => {
         console.log(...args);
         log.textContent += args.join(" ") + "\n";
@@ -401,6 +434,7 @@
             throw new Error(
               "Game save storage could not be opened. Check this browser’s storage settings and reload.",
             );
+          M.FS.mkdirTree("/butterscotch/forager");
           M.FS.mkdirTree("/game/assets/local");
           let gameBinary = new Uint8Array(
             manifest.gameParts.reduce(
