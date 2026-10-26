@@ -1,0 +1,31 @@
+{
+  "version": "16035dcc3ca1630ff7cf772eec6d87883f926d5a5cdf3f4b09374fa851545ca6",
+  "gameParts": [
+    "assets/game.unx.part01",
+    "assets/game.unx.part02",
+    "assets/game.unx.part03",
+    "assets/game.unx.part04"
+  ],
+  "bytes": {
+    "butterscotch.wasm": 1901045,
+    "assets/game.unx.part01": 25000000,
+    "assets/game.unx.part02": 25000000,
+    "assets/game.unx.part03": 25000000,
+    "assets/game.unx.part04": 6444448,
+    "assets/options.ini": 110,
+    "assets/icon.png": 5183,
+    "assets/audiogroup1.dat": 25142035,
+    "assets/data.txt": 9288,
+    "assets/local/french.json": 59535,
+    "assets/local/chinese.json": 51602,
+    "assets/local/german.json": 55096,
+    "assets/local/turkish.json": 55259,
+    "assets/local/russian.json": 76672,
+    "assets/local/english.json": 53562,
+    "assets/local/japanese.json": 60558,
+    "assets/local/spanish.json": 55533,
+    "assets/local/korean.json": 60089,
+    "assets/local/thai.json": 94052,
+    "assets/local/portuguese.json": 56573
+  }
+}
