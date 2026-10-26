@@ -1,0 +1,230 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Mindustry (TeaVM)</title>
+    <style>
+        html, body { margin: 0; height: 100%; background: #16161a; overflow: hidden; overscroll-behavior: none; }
+        canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+
+        /* Boot progress overlay. The game's own loading animation is disabled
+           in this port (LoadRenderer crashed per-frame on real GPUs), so until
+           the first rendered frame the page is otherwise pure black. WebAssets
+           drives the bar through window.__msBootProgress while it prefetches
+           the ~700-file asset manifest; the backend hides the overlay via
+           window.__msBootDone() on the first successfully rendered frame.
+           Everything no-ops when these elements are absent (standalone build). */
+        #ms-boot { position: fixed; inset: 0; display: flex; flex-direction: column;
+                   align-items: center; justify-content: center; gap: 14px;
+                   background: #16161a; z-index: 10; }
+        #ms-boot-track { width: 320px; max-width: 70vw; height: 4px; border-radius: 2px;
+                         background: rgba(255,255,255,0.12); overflow: hidden; }
+        #ms-boot-fill { width: 0%; height: 100%; border-radius: 2px;
+                        background: #ffd37f; transition: width 120ms linear; }
+        #ms-boot-label { font: 13px/1.4 -apple-system, 'Segoe UI', Roboto, sans-serif;
+                         color: #b9b9c4; letter-spacing: 0.02em; }
+        /* Update-available banner (see msUpdateCheck below): a newer build is
+           deployed than the one this page booted with. */
+        #ms-update { position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+                     z-index: 40; display: flex; gap: 10px; align-items: center;
+                     background: #2a2313; border: 1px solid #6b5a2c; border-top: none;
+                     border-radius: 0 0 8px 8px; padding: 10px 16px;
+                     font: 13px/1.4 -apple-system, 'Segoe UI', Roboto, sans-serif;
+                     color: #ffd37f; }
+        #ms-update button { background: #3a3320; color: #ffd37f; border: 1px solid #6b5a2c;
+                            border-radius: 4px; padding: 5px 12px; cursor: pointer;
+                            font: 12px/1.2 -apple-system, 'Segoe UI', Roboto, sans-serif; }
+    </style>
+</head>
+<body>
+    <canvas id="mindustry-canvas"></canvas>
+    <div id="ms-boot">
+        <div id="ms-boot-track"><div id="ms-boot-fill"></div></div>
+        <div id="ms-boot-label">Loading game code&hellip;</div>
+    </div>
+    <script>
+        // Keep the backing store in sync with CSS size / devicePixelRatio.
+        function resize() {
+            var c = document.getElementById('mindustry-canvas');
+            var dpr = window.devicePixelRatio || 1;
+            c.width = Math.floor(c.clientWidth * dpr);
+            c.height = Math.floor(c.clientHeight * dpr);
+        }
+        window.addEventListener('resize', resize);
+        resize();
+    </script>
+    <script>
+        // Boot overlay drivers, called from the compiled game code (WebAssets
+        // / TeavmApplication). Guarded so pages without the overlay (the
+        // standalone single-file build) no-op cleanly.
+        function msBootSet(label, pct) {
+            var fill = document.getElementById('ms-boot-fill');
+            var text = document.getElementById('ms-boot-label');
+            if (fill) fill.style.width = pct + '%';
+            if (text) text.textContent = label;
+        }
+        window.__msBootProgress = function (loaded, total) {
+            var pct = total > 0 ? Math.round(loaded * 100 / total) : 100;
+            msBootSet('Loading assets ' + loaded + ' / ' + total, pct);
+        };
+        window.__msBootStatus = function (text) { msBootSet(text, 100); };
+        window.__msBootDone = function () {
+            var root = document.getElementById('ms-boot');
+            if (root) root.remove();
+            // once booted, check whether a newer build is deployed (GitHub
+            // Pages build: the repo's latest; a self-hosted zip: whatever the
+            // hoster now serves). No-cache refetch of the manifest, hash
+            // compared against what this page booted with.
+            setTimeout(msUpdateCheck, 5000);
+        };
+        function msUpdateCheck() {
+            if (location.protocol === 'file:' || !window.__msCacheVersion) return;
+            try {
+                fetch('./asset-manifest.txt', { cache: 'no-cache' }).then(function (r) {
+                    return r.ok ? r.text() : null;
+                }).then(function (txt) {
+                    if (txt == null) return;
+                    if (msCacheHash(txt) !== window.__msCacheVersion) msShowUpdateBanner();
+                }).catch(function () {});
+            } catch (e) {}
+        }
+        window.__msUpdateCheck = msUpdateCheck; // exposed for tests
+        function msShowUpdateBanner() {
+            try { if (sessionStorage.getItem('mindustryweb.updateDismissed') === '1') return; } catch (e) {}
+            if (document.getElementById('ms-update')) return;
+            var b = document.createElement('div');
+            b.id = 'ms-update';
+            b.innerHTML = 'A newer build of the game is available.' +
+                '<button id="ms-update-reload">Reload</button>' +
+                '<button id="ms-update-dismiss">Dismiss</button>';
+            document.body.appendChild(b);
+            document.getElementById('ms-update-reload').onclick = function () { location.reload(); };
+            document.getElementById('ms-update-dismiss').onclick = function () {
+                try { sessionStorage.setItem('mindustryweb.updateDismissed', '1'); } catch (e) {}
+                b.remove();
+            };
+        }
+    </script>
+    <script>
+        // Asset cache: IndexedDB, deliberately NOT a service worker. Repeat
+        // visits hydrate the prefetch from here instead of re-downloading
+        // ~60MB (GitHub Pages sends max-age=600, so the HTTP cache expires in
+        // ten minutes). Keyed by a hash of the manifest text -- which carries
+        // file sizes AND a build stamp, so any asset or code change
+        // invalidates the whole cache. Music never rides along (it streams on
+        // demand). Everything degrades to a plain network fetch when
+        // IndexedDB is unavailable (private mode).
+        // Bypass: append ?nocache to the URL for one visit, or flip Settings
+        // -> Developer options -> "Disable asset cache" (stored in
+        // localStorage by the game, applied from the next reload).
+        var msCacheDisabled = /[?&]nocache(=|&|$)/.test(location.search)
+            || localStorage.getItem('mindustryweb.nocache') === '1';
+        window.__msCacheVersion = '';
+        window.__msAssetCacheDb = null;
+        function msCacheOpen() {
+            if (window.__msAssetCacheDb) return Promise.resolve(window.__msAssetCacheDb);
+            return new Promise(function (res) {
+                try {
+                    var rq = indexedDB.open('mindustry-assets', 1);
+                    rq.onupgradeneeded = function () { rq.result.createObjectStore('files'); };
+                    rq.onsuccess = function () { window.__msAssetCacheDb = rq.result; res(rq.result); };
+                    rq.onerror = function () { res(null); };
+                } catch (e) { res(null); }
+            });
+        }
+        function msCacheHash(s) {
+            var h = 5381;
+            for (var i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+            return 'v' + (h >>> 0).toString(36) + '-' + s.length;
+        }
+        var msCachePutQueue = [], msCacheFlushScheduled = false;
+        function msCacheFlush() {
+            msCacheFlushScheduled = false;
+            var items = msCachePutQueue.splice(0, 100);
+            if (items.length) {
+                msCacheOpen().then(function (db) {
+                    if (!db) return;
+                    try {
+                        var s = db.transaction('files', 'readwrite').objectStore('files');
+                        for (var i = 0; i < items.length; i++) {
+                            try { s.put(items[i][1], items[i][0]); } catch (e) {}
+                        }
+                    } catch (e) {}
+                });
+            }
+            if (msCachePutQueue.length && !msCacheFlushScheduled) {
+                msCacheFlushScheduled = true;
+                setTimeout(msCacheFlush, 0);
+            }
+        }
+        window.__msCacheInit = function (manifestText, done) {
+            window.__msCacheVersion = msCacheHash(manifestText); // update check compares this
+            if (msCacheDisabled) { done(); return; }
+            var v = window.__msCacheVersion;
+            msCacheOpen().then(function (db) {
+                if (!db) { done(); return; }
+                // Best-effort durability hint; ignore refusals.
+                try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+                var fin = function (keep) {
+                    if (keep) { done(); return; }
+                    try {
+                        var t = db.transaction('files', 'readwrite'), s = t.objectStore('files');
+                        s.clear();
+                        s.put(v, '__version__');   // ordered after clear() within the tx
+                        t.oncomplete = function () { done(); };
+                        t.onerror = function () { done(); };
+                    } catch (e) { done(); }
+                };
+                try {
+                    var rq = db.transaction('files', 'readonly').objectStore('files').get('__version__');
+                    rq.onsuccess = function () { fin(rq.result === v); };
+                    rq.onerror = function () { fin(false); };
+                } catch (e) { fin(false); }
+            });
+        };
+        window.__msCacheGet = function (path) {
+            if (msCacheDisabled) return Promise.resolve(null);
+            return msCacheOpen().then(function (db) {
+                if (!db) return null;
+                return new Promise(function (res) {
+                    try {
+                        var rq = db.transaction('files', 'readonly').objectStore('files').get(path);
+                        rq.onsuccess = function () { res(rq.result || null); };
+                        rq.onerror = function () { res(null); };
+                    } catch (e) { res(null); }
+                });
+            });
+        };
+        window.__msCachePut = function (path, buffer) {
+            if (msCacheDisabled) return;
+            msCachePutQueue.push([path, buffer]);
+            if (!msCacheFlushScheduled) {
+                msCacheFlushScheduled = true;
+                setTimeout(msCacheFlush, 0);
+            }
+        };
+    </script>
+    <!-- Font stack for the FreeType replacement (see backend-teavm
+         src/arc/freetype/FreeType.java): opentype.js parses WOFF/TTF,
+         freetype-glue.js rasterizes via Path2D + Canvas2D and exposes the
+         ArcFreeType handle API the Java side calls through JSBody. -->
+    <script src="opentype.min.js"></script>
+    <script src="freetype-glue.js"></script>
+    <!-- P2P multiplayer glue (WebRTC + signaling; see WebRtcNetProvider).
+         Optional in principle but always loaded: without it the game still
+         runs, multiplayer just reports unavailable. -->
+    <script src="net-glue.js"></script>
+    <script src="mindustry.js"></script>
+    <script>
+        // TeaVM's UMD output attaches the compiled entry point to `window`
+        // as `main` -- it does not auto-run. Invoke it to boot the game.
+        try {
+            if (typeof window.main !== 'function') throw new Error("TeaVM export `main` not found on window");
+            window.main([]);
+        } catch (e) {
+            console.error("[boot] failed to start: " + (e && e.stack || e));
+            document.title = "BOOT FAILED";
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a50b35cc4b299112',t:'MTc5MzAzNjA0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
