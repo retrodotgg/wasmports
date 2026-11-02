@@ -1,0 +1,38 @@
+html, body {
+  margin: 0; padding: 0; width: 100%; height: 100%;
+  overflow: hidden; background: #002B50;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ------------------------------------------------------------- игра */
+#game-container {
+  position: absolute; left: 50%; top: 50%;
+  display: none; overflow: hidden;
+}
+#game {
+  display: block; width: 100%; height: 100%;
+  background: #002B50;
+}
+
+/* --------------------------------------------------------- загрузка */
+#loader {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  color: #fff;
+}
+#progress-bar {
+  width: 60%; max-width: 420px; height: 12px;
+  background: rgba(255, 255, 255, .18);
+  border-radius: 999px; overflow: hidden;
+}
+#progress-fill {
+  width: 0%; height: 100%;
+  background: #fff; border-radius: 999px;
+  transition: width .18s linear;
+}
+#progress-amount {
+  margin-top: 12px; font-size: 15px;
+  letter-spacing: .3px; text-shadow: 0 1px 3px rgba(0, 0, 0, .5);
+}
