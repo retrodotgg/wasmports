@@ -1,3 +1,0 @@
-var wasmExports;
-createWasm();
-run();
